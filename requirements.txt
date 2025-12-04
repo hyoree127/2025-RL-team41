@@ -6,6 +6,6 @@ matplotlib
 seaborn
 pandas
 
-# Optional: if your project uses GPU and you want fixed version
-# torch==2.1.0+cu118  (do NOT uncomment unless you're sure)
+# Optional
+# torch==2.1.0+cu118 (do NOT uncomment unless you're sure)
 # torchvision
