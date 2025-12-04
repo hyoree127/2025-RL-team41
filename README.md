@@ -132,7 +132,7 @@ Reward is defined as:
 - Full weight restoration before re-quantizing
 - Implemented in quantizer.py
 
-**RL Algorithm**
+**RL Algorithm**  
 REINFORCE (Policy Gradient) 
 with entropy bonus + advantage normalization
 
@@ -150,9 +150,43 @@ with entropy bonus + advantage normalization
 
 ## Output
 
-## AWQ Baseline(C4, LLMCompressor)
+## AWQ Baseline(LLMCompressor)
 
 - Run:
 ```
 python quantize_with_llmcompressor_dataset_c4.py
 ```
+
+- This script:
+1. Loads Llama-3-8B-Instruct
+2. Loads calibration data from ../data/c4/*.jsonl
+3. Filters and prepares 512 text samples
+4. Runs W4A16 AWQ via:
+```
+recipe = [
+    AWQModifier(
+        scheme="W4A16",
+        targets=["Linear"],
+        ignore=["lm_head", "embed_tokens", "re:.*norm.*"],
+    )
+]
+```
+5. Calls oneshot(...) from llmcompressor to quantize and save the model
+6. Saves tokenizer and quantized model to quant_path
+
+## Visualization
+```
+from visualizer import ModelVisualizer
+
+viz = ModelVisualizer(layer_info)  # layer_info: list of dicts
+viz.plot_all(save_dir="plots/")
+```
+
+Output:  
+- Weight mean / std / min / max vs layer index
+- Activation mean / max vs layer index
+- Boxplot by layer type (e.g., Attention / MLP layers)
+
+
+## Pretrained Quantized Models
+/////// 링크 추가 ///////
