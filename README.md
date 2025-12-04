@@ -36,7 +36,7 @@ cd 2025-RL-team41
 ```
 pip install -r requirements.txt
 ```
-Install PyTorch separately if needed:
+- Install PyTorch separately if needed:
 ```
 pip install torch --index-url https://download.pytorch.org/whl/cu121
 ```
@@ -45,7 +45,7 @@ pip install torch --index-url https://download.pytorch.org/whl/cu121
 ```
 pip install llmcompressor
 ```
-CUDA version:
+- CUDA version:
 ```
 pip install "llmcompressor[cuda]"
 ```
