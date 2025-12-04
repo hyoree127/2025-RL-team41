@@ -91,7 +91,7 @@ huggingface-cli download \
   --local-dir ./models/Llama-3-8B-Instruct \
   --include "pytorch_model*.bin" "tokenizer*" "config.json"
 ```
-** Requires LLaMA access approval from Meta/HuggingFace. **
+**Requires LLaMA access approval from Meta/HuggingFace.**
 
 ## Run RL-based Mixed-Precision Training Pipeline
 Run the full mixed-precision RL loop:
