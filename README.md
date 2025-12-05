@@ -3,7 +3,7 @@
 ## Overview
 This project introduces a Reinforcement Learning (RL) based mixed-precision quantization framework to reduce memory usage of large language models (LLMs) while minimizing perplexity degradation.
 
-Instead of applying a fixed bit-width (like AWQ W4A16),  
+Instead of applying a fixed bit-width,  
 the policy network **selects the bit-width for each linear layer (3 / 4 / 8 bit)** based on activation statistics,  
 
 balancing:  
