@@ -30,7 +30,24 @@ quantize_with_redpajama.py      # AWQ baseline implementation
 config.py                       # Hyperparameters & global settings
 ```
 
----
+## Features
+**Activation-aware mixed-precision**
+Computes activation magnitude per layer to infer sensitivity.
+
+**RL-driven bit selection**
+Policy network selects 3-bit / 4-bit / 8-bit per linear layer.
+
+**Reward-based optimization**
+```
+Reward = -α * (PPL - PPL_baseline) + β * MemorySaving
+```
+
+**High-quality quantization backend**
+Per-channel quantization
+Group-wise quantization (group_size = 128)
+
+**AWQ W4A16 baseline included**
+Provides direct comparison with established 4-bit quantization.
 
 ## Installation
 
@@ -128,9 +145,9 @@ This performs:
 
 ---
 
-## System Design
+## System Architecture
 
-### State
+### State: Activation Statistics
 Layer activation mean (absolute value) from forward hooks → Indicates quantization sensitivity
 
 ### Action (Bit Selection)
