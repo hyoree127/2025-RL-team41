@@ -1,7 +1,7 @@
 # AutoMP-RL: Automated Mixed-Precision Quantization using Reinforcement Learning
 
 ## Overview
-This project introduces a Reinforcement Learning (RL) based mixed-precision quantization framework to reduce memory usage of large language models (LLMs) while minimizing perplexity degradation.
+This project introduces a Reinforcement Learning (RL) based mixed-precision quantization framework to reduce memory usage of large language models (LLMs) while **minimizing perplexity degradation.**  
 
 Instead of applying a fixed bit-width, the policy network **selects the bit-width for each linear layer (3 / 4 / 8 bit)** based on activation statistics, balancing:
 
@@ -31,22 +31,22 @@ config.py                       # Hyperparameters & global settings
 ```
 
 ## Features
-**Activation-aware mixed-precision**
+**Activation-aware mixed-precision**  
 Computes activation magnitude per layer to infer sensitivity.
 
-**RL-driven bit selection**
+**RL-driven bit selection**  
 Policy network selects 3-bit / 4-bit / 8-bit per linear layer.
 
-**Reward-based optimization**
+**Reward-based optimization**  
 ```
 Reward = -α * (PPL - PPL_baseline) + β * MemorySaving
 ```
 
-**High-quality quantization backend**
-Per-channel quantization
-Group-wise quantization (group_size = 128)
+**High-quality quantization backend**  
+Per-channel quantization  
+Group-wise quantization (group_size = 128)  
 
-**AWQ W4A16 baseline included**
+**AWQ W4A16 baseline included**  
 Provides direct comparison with established 4-bit quantization.
 
 ## Installation
@@ -148,9 +148,11 @@ This performs:
 ## System Architecture
 
 ### State: Activation Statistics
-Layer activation mean (absolute value) from forward hooks → Indicates quantization sensitivity
-
-### Action (Bit Selection)
+From ActivationCollector:  
+- Mean absolute activation per layer  
+- Used as a lightweight sensitivity estimate
+  
+### Action: Bit Selection
 - **Action space**: {3, 4, 8} bits (configurable)
 - A small MLP (`QuantizationPolicy` in `policy.py`) maps the scalar state to a categorical distribution over actions
 
