@@ -59,6 +59,9 @@ class RewardCalculator:
         # 실제 quantized model의 PPL 계산
         ppl = self.calculate_ppl(model)
         memory = self.calculate_memory(bit_config)
+
+        w8_targets = [name for name, bit in bit_config.items() if bit == 8]
+        w8_ratio = len(w8_targets) / len(bit_config)
         
         # 메모리 절감률 계산
         baseline_memory = len(bit_config) * 16
@@ -67,7 +70,17 @@ class RewardCalculator:
         ppl_penalty = ppl - self.baseline_ppl if self.baseline_ppl else ppl
         
         reward = -Config.ALPHA * ppl_penalty + Config.BETA * memory_saving
+
+        if w8_ratio > Config.PENALTY:
+            # 초과분(diff)에 대해 아주 큰 가중치(예: 10~20)를 곱해 뺍니다.
+            # 예: 11%면 조금 감점, 50%면 엄청 많이 감점
+            diff = w8_ratio - Config.PENALTY
+            constraint_penalty = diff * 40.0  # 이 계수는 상황에 따라 조절 (강력하게)
+            
+            # (선택사항) PPL 계산 비용을 아끼려면 여기서 return 할 수도 있지만, 
+            # 학습 초기에는 PPL과 함께 계산해주는 것이 방향 잡기에 좋습니다.
         
+            reward -= constraint_penalty
         # 디버깅 정보
         bit_dist = Counter(bit_config.values())
         avg_bit = sum(bit_config.values()) / len(bit_config)
