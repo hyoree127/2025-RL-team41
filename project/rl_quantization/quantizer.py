@@ -8,44 +8,6 @@ from llmcompressor import oneshot
 from llmcompressor.modifiers.quantization import QuantizationModifier
 from typing import Dict
 
-# def quantize_weight_per_channel(weight: torch.Tensor, n_bit: int) -> torch.Tensor:
-#     """
-#     Channel별로 scale을 계산하되, 모든 channel을 동일한 bit로 quantization
-    
-#     Args:
-#         weight: [out_channels, in_channels]  # 예: [4096, 4096]
-#         n_bit: layer 전체에 적용할 bit 수 (3, 4, 8)
-    
-#     Returns:
-#         quantized_weight: [out_channels, in_channels]
-#     """
-#     dtype = weight.dtype
-#     num_channels = weight.shape[0]
-    
-#     # Quantization 범위
-#     q_max = 2 ** (n_bit - 1) - 1
-#     q_min = -(2 ** (n_bit - 1))
-    
-#     quantized = torch.zeros_like(weight)
-    
-#     # Channel별로 독립적인 scale 계산
-#     for ch_idx in range(num_channels):
-#         ch_weight = weight[ch_idx]  # [in_channels]
-        
-#         # 이 channel의 최대값으로 scale 계산
-#         w_max = ch_weight.abs().max()
-#         scale = w_max / q_max if w_max > 0 else 1.0
-        
-#         # Quantize & Dequantize
-#         q_weight = torch.clamp(
-#             torch.round(ch_weight / scale), 
-#             q_min, 
-#             q_max
-#         )
-#         quantized[ch_idx] = q_weight * scale
-    
-#     return quantized.to(dtype)
-
 def quantize_weight_per_channel(weight: torch.Tensor, n_bit: int) -> torch.Tensor:
     """
     Channel별로 scale을 계산하되, 모든 channel을 동일한 bit로 quantization (Vectorized Version)
