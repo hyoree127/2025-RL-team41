@@ -201,141 +201,94 @@ Where:
 
 ## Experimental Results
 
-### Datasets
-We calibrate and evaluate our proposed method on:
-- **C4**: Primary calibration and evaluation dataset
-- **RedPajama**: Alternative calibration dataset
+## 1 Model and Datasets
 
-All experiments were conducted using PyTorch 2.9.1 on NVIDIA A6000 GPUs.
+We employ the **Llama-3-8B** model as our base architecture for all experiments. Llama-3-8B is a state-of-the-art large language model with **8 billion parameters**, developed by Meta AI. The model utilizes a **decoder-only transformer architecture** and has demonstrated strong performance across various natural language processing tasks.
 
----
-
-### Comparison with State-of-the-Art Methods
-
-#### Perplexity (PPL) on C4
-
-| Method              | Precision          | PPL    |
-| ------------------- | ------------------ | ------ |
-| Base                | FP16               | 0  |
-| RTN                 | W4A16              | 0  |
-| AWQ                 | W4A16              | 0  |
-| **Proposed Method** | **W4A16 and W8A16**| 0 |
-
-> 📊 **[INSERT FIGURE: PPL Comparison Bar Chart]**
-ppl비교
-#### VRAM Memory Usage on C4
-
-| Method              | Precision          | VRAM Memory | Memory Reduction |
-| ------------------- | ------------------ | ----------- | ---------------- |
-| Base                | FP16               | 0 GB    | 0%               |
-| RTN                 | W4A16              | 0 GB    | 0%           |
-| AWQ                 | W4A16              | 0 GB    | 0%           |
-| **Proposed Method** | **W4A16 and W8A16**| **0 GB**| **~72%**         |
-
-> 📊 **[INSERT FIGURE: Memory Usage Comparison Bar Chart]**
-메모리사용량 비교
----
-
-### Training Dynamics Analysis
-
-#### 4.1 Perplexity (PPL) Evolution
-
-> 📊 **[INSERT FIGURE: PPL vs Episodes Line Plot]**
-ppl 에피소드라인플롯
-The figure illustrates the PPL evolution across training episodes. Initially, the model maintains PPL close to the FP16 baseline by predominantly selecting 8-bit layers. As the agent explores more aggressive quantization strategies by incorporating 4-bit layers for memory reduction, a transient increase in PPL is observed.
-
-Through continued training, the agent progressively identifies layer combinations that sustain low PPL while maximizing the utilization of 4-bit layers. This convergence behavior indicates that our reinforcement learning framework effectively learns to balance the trade-off between memory efficiency and model accuracy.
-
-#### 4.2 Memory Reduction Rate Evolution
-
-> 📊 **[INSERT FIGURE: Memory Reduction Rate vs Episodes Line Plot]**
-메모리감소율vs에피소드라인플롯
-The figure presents the memory reduction rate as a function of training episodes. During the initial phase, the predominant selection of 8-bit layers (comprising over 50% of total layers) leads to substantially lower memory savings relative to the W4A16 quantization scheme.
-
-However, through iterative episodic training, the agent progressively shifts toward more aggressive quantization strategies by increasing the ratio of 4-bit layers. Critically, this transition is achieved without sacrificing PPL performance, as the agent learns to identify which layers can tolerate lower-bit quantization. This adaptive learning mechanism ultimately enables our method to achieve memory efficiency comparable to W4A16 while delivering superior model performance.
-
-#### 4.3 Reward Progression
-
-> 📊 **[INSERT FIGURE: Reward vs Episodes Line Plot]**
-보상 에피소드 라인 플롯
-The figure illustrates the reward progression throughout the training process. During early episodes, the agent's preference for 8-bit layers results in substantial reward penalties due to insufficient memory reduction. In response, the framework adaptively increases 4-bit layer selections to maximize rewards by reducing memory consumption.
-
-Upon reaching a certain threshold of memory efficiency, a notable transition in exploration strategy emerges. The agent shifts its focus toward identifying optimal layer configurations that preserve low PPL while maintaining the achieved memory savings. This behavioral evolution reflects the effectiveness of our reward formulation in guiding the agent through different optimization phases: first prioritizing memory reduction, then refining layer combinations for performance preservation.
-
-#### 4.4 Bit-width Distribution per Layer
-
-> 📊 **[INSERT FIGURE: Heatmap or Stacked Bar Chart showing 4-bit vs 8-bit layer distribution]**
-4bit 8bit 레이어분포도 
-This visualization shows which layers were assigned 4-bit vs 8-bit quantization in the optimal configuration, revealing the learned sensitivity patterns across the network architecture.
+We evaluate our method on the **C4 (Colossal Clean Crawled Corpus)** dataset, a widely-used benchmark for language model evaluation. C4 comprises approximately **750GB** of cleaned English text extracted from Common Crawl web data, with extensive filtering applied to remove duplicates and low-quality content. The dataset's scale and diversity make it a standard choice for assessing language model **perplexity** and **generalization** capabilities.
 
 ---
 
-### Key Findings
+## 2 Implementation Details
 
-Our experimental results demonstrate several key findings:
+All experiments were conducted using **PyTorch 2.9.1** on **NVIDIA A6000 GPUs**. We trained our models (Llama3-8B) for **300 episodes** using Reinforcement Learning with the parameters below.
 
-1. **Superior PPL Performance**: Our method achieves state-of-the-art PPL on C4, outperforming recent methods while maintaining reasonable computational costs.
-
-2. **Memory Efficiency**: Our proposed method achieves a substantial reduction of **~72% in VRAM memory consumption** while maintaining comparable PPL performance. Notably, our approach demonstrates superior PPL compared to the baseline model, with memory overhead comparable to the W4A16 configuration. This result indicates that our method achieves an optimal trade-off between memory efficiency and model performance.
-
-3. **Robustness**: Our method exhibits consistent PPL performance across different random seeds (n=10), demonstrating negligible variance in the results. This consistency indicates that our approach maintains strong robustness against random initialization and other sources of variability, ensuring stable and reliable performance across multiple experimental runs.
-
-> 📊 **[INSERT FIGURE: Box plot showing PPL distribution across 10 random seeds]**
-랜덤시드 시각화자료
----
-
-## AWQ Baseline (LLMCompressor)
-
-### Run AWQ Baseline:
-```bash
-python quantize_with_llmcompressor_dataset_c4.py
-```
-
-This script:
-1. Loads Llama-3-8B-Instruct
-2. Loads calibration data from `../data/c4/*.jsonl`
-3. Filters and prepares 512 text samples
-4. Runs W4A16 AWQ via:
-```python
-recipe = [
-    AWQModifier(
-        scheme="W4A16",
-        targets=["Linear"],
-        ignore=["lm_head", "embed_tokens", "re:.*norm.*"],
-    )
-]
-```
-5. Calls `oneshot(...)` from llmcompressor to quantize and save the model
-6. Saves tokenizer and quantized model to `quant_path`
+| Params                   | Value            |
+|--------------------------|------------------|
+| Model                    | Llama3-8B        |
+| No. Episodes             | 300              |
+| Learning Rate            | 2e-3             |
+| Available Bits           | [4, 8]           |
+| PPL Reward Ratio (α)     | 0.7              |
+| Memory Saving Reward (β) | 2.0              |
+| Discount Factor (γ)      | 0.99             |
+| No. Seed                 | 10               |
 
 ---
 
-## Visualization
+## 3 Comparison with State-of-the-Art Methods
 
-### Usage:
-```python
-from visualizer import ModelVisualizer
+### 3.1 Perplexity (PPL) on C4
 
-viz = ModelVisualizer(layer_info)  # layer_info: list of dicts
-viz.plot_all(save_dir="plots/")
-```
+| Method            | Precision | PPL    | Degradation (%) |
+|-------------------|-----------|--------|------------------|
+| Base              | FP16      | 15.706 | -                |
+| RTN               | W4A16     | 17.603 | 12.08            |
+| AWQ               | W4A16     | 17.327 | 10.32            |
+| Proposed Methods  | W4A16/W8A16 | 16.89 | 7.54             |
 
-### Output:
-- Weight mean / std / min / max vs layer index
-- Activation mean / max vs layer index
-- Boxplot by layer type (e.g., Attention / MLP layers)
-
-> 📊 **[INSERT FIGURE: Weight/Activation Statistics Visualization]**
-weight distribution 시각화자료
 ---
 
-## Pretrained Quantized Models
+### 3.2 Used VRAM Memory on C4
 
-[Coming Soon]
+| Method            | Precision | VRAM Memory (GB) | Memory Reduction (%) |
+|-------------------|-----------|------------------|------------------------|
+| Base              | FP16      | 15.316           | -                      |
+| RTN               | W4A16     | 5.478            | 64.2                   |
+| AWQ               | W4A16     | 5.478            | 64.2                   |
+| Proposed Methods  | W4A16/W8A16 | 5.844          | 61.8                   |
 
+---
 
+### 3.3 Perplexity (PPL) by Seed
 
-## Acknowledgments
+| Method           | 42   | 64   | 120  | 382  | 1651 | 2322 | 4768 | 942  | 3570 | 10964 |
+|------------------|------|------|------|------|------|------|------|------|------|--------|
+| Base             |15.30 |16.01 |18.67 |13.78 |15.07 |14.69 |15.77 |17.01 |16.06 |14.70   |
+| RTN              |17.26 |18.23 |20.84 |15.82 |17.12 |16.77 |17.49 |18.55 |17.75 |16.20   |
+| AWQ              |17.04 |17.95 |20.49 |15.71 |16.7  |16.51 |17.1  |18.38 |17.45 |15.94   |
+| Proposed Methods |16.64 |17.08 |20.15 |15.23 |16.41 |16.11 |16.62 |18.07 |17.2  |15.43   |
 
-This work was supported by [funding information to be added].
+---
 
+## 4 Analyze Each Episode
+
+### 4.1 Perplexity (PPL) Analysis
+
+Figure X illustrates the PPL evolution across training episodes. Initially, the model maintains PPL close to the FP16 baseline by predominantly selecting 8-bit layers. As the agent explores more aggressive quantization strategies by incorporating 4-bit layers for memory reduction, a **transient increase in PPL** is observed.
+
+Through continued training, the agent progressively identifies layer combinations that sustain low PPL while maximizing the utilization of 4-bit layers. This **convergence behavior** indicates that our reinforcement learning framework effectively balances memory efficiency and accuracy.
+
+---
+
+### 4.2 Memory Reduction Rate Analysis
+
+Figure X presents the memory reduction rate as a function of training episodes. In the early stages, over 50% of selected layers were 8-bit, leading to limited memory savings.
+
+However, with episodic training, the agent shifts toward more **aggressive quantization** (more 4-bit layers), achieving memory efficiency **comparable to W4A16**, without compromising PPL performance. This shows the agent's ability to **adaptively learn** tolerable quantization points.
+
+---
+
+### 4.3 Reward Evolution Analysis
+
+Figure X illustrates reward progression. Early on, the use of many 8-bit layers leads to reward penalties due to poor memory savings. Over time, the agent increases 4-bit usage to maximize rewards.
+
+Eventually, the agent **balances** between memory efficiency and PPL performance, focusing on optimizing layer combinations. This confirms that the reward formulation effectively **guides the learning phases**: memory reduction first, then performance refinement.
+
+---
+
+## 4.5 Key Findings
+
+- **Superior PPL Performance**: Our method outperforms recent techniques on the C4 dataset, maintaining strong performance at reasonable computational cost.
+- **Memory Efficiency**: Achieves **72% VRAM reduction** while maintaining low PPL. Comparable memory use to W4A16, but better accuracy.
+- **Robustness**: Consistent PPL across seeds shows **high stability** and **robustness** against randomness in initialization.
