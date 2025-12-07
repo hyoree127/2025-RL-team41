@@ -247,7 +247,7 @@ All experiments were conducted using **PyTorch 2.9.1** on **NVIDIA A6000 GPUs**.
 | RTN               | W4A16     | 5.478            | 64.2                   |
 | AWQ               | W4A16     | 5.478            | 64.2                   |
 | Proposed Methods  | W4A16/W8A16 | 5.844          | 61.8                   |
-
+![AutoMP-RL](./img/memory.png)
 ---
 
 ### 3.3 Perplexity (PPL) by Seed
@@ -258,7 +258,7 @@ All experiments were conducted using **PyTorch 2.9.1** on **NVIDIA A6000 GPUs**.
 | RTN              |17.26 |18.23 |20.84 |15.82 |17.12 |16.77 |17.49 |18.55 |17.75 |16.20   |
 | AWQ              |17.04 |17.95 |20.49 |15.71 |16.7  |16.51 |17.1  |18.38 |17.45 |15.94   |
 | Proposed Methods |16.64 |17.08 |20.15 |15.23 |16.41 |16.11 |16.62 |18.07 |17.2  |15.43   |
-
+![AutoMP-RL](./img/ppl.png)
 ---
 
 ## 4 Analyze Each Episode
