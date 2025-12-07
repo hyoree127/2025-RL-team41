@@ -176,8 +176,19 @@ Where:
 - Full weight restoration before re-quantizing
 - Implemented in `quantizer.py`
 
-### RL Algorithm
-**REINFORCE (Policy Gradient)** with entropy bonus + advantage normalization
+## RL Algorithm
+
+This project employs a **DQN-style (Deep Q-Network)** policy network to select quantization bit-widths for each linear layer based on activation statistics.
+
+The policy network is a lightweight MLP that takes the **mean activation value** of a layer as input (state) and outputs **Q-values (logits)** for each candidate bit-width (3 / 4 / 8). The bit-width is selected either by sampling or using the argmax of the predicted Q-values.
+
+- **State**: Mean activation value (1D scalar)
+- **Action**: Bit-width selection (3, 4, or 8 bits)
+- **Q-values**: Logits corresponding to each bit option
+- **Action selection**: Sampling or argmax over logits
+
+This architecture improves action stability and learning efficiency, especially in the context of layer-wise bit selection where rewards are sparse and delayed.
+
 
 ---
 
@@ -264,6 +275,8 @@ All experiments were conducted using **PyTorch 2.9.1** on **NVIDIA A6000 GPUs**.
 ---
 
 ## 4 Analyze Each Episode
+
+![AutoMP-RL](./img/training_reward.png)
 
 ### 4.1 Perplexity (PPL) Analysis
 
