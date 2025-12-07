@@ -25,7 +25,7 @@ class RLTrainer:
         self.best_ppl = float('inf')
         self.best_ppl_episode = 0
     
-    def train_step(self, states: Dict[str, float], quantize_fn, baseline_model):
+    def train_step(self, states: Dict[str, float], quantize_fn):
         """1회 에피소드 학습"""
         self.policy.train()
         
@@ -67,7 +67,7 @@ class RLTrainer:
         
         # Entropy bonus
         entropy = -(torch.exp(all_log_probs) * all_log_probs).mean()
-        entropy_coef = 0.05
+        entropy_coef = max(0.001, 0.05 * (0.95 ** (len(self.episode_rewards) // 10)))
         
         loss = policy_loss - entropy_coef * entropy
         
