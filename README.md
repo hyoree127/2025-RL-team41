@@ -1,5 +1,5 @@
 ![AutoMP-RL](./img/rl.png)
-# AutoMP-RL: Automated Mixed-Precision Quantization using Reinforcement Learning
+## AutoMP-RL: Automated Mixed-Precision Quantization using Reinforcement Learning
 
 ## Overview
 This project introduces a Reinforcement Learning (RL) based mixed-precision quantization framework to reduce memory usage of large language models (LLMs) while **minimizing perplexity degradation.**  
