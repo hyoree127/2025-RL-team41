@@ -3,7 +3,9 @@
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from datasets import load_dataset
+import numpy as np
 import glob
+import gc
 from config import Config
 from state import ActivationCollector
 from policy import QuantizationPolicy
@@ -11,10 +13,10 @@ from reward import RewardCalculator
 from trainer import RLTrainer
 from quantizer import QuantizationManager
 
-def load_data():
+def load_data(SEED):
     """Calibration 및 Evaluation 데이터 로드"""
     data_files = glob.glob(Config.DATASET_PATH)
-    dataset = load_dataset("json", data_files=data_files, split="train").shuffle(seed=Config.SEED)
+    dataset = load_dataset("json", data_files=data_files, split="train").shuffle(seed=SEED)
     
     calib_data = dataset.select(range(Config.CALIB_SAMPLES))
     eval_data = dataset.select(range(Config.CALIB_SAMPLES, Config.CALIB_SAMPLES + Config.EVAL_SAMPLES))
@@ -63,14 +65,16 @@ def print_config_analysis(config_path, title):
     print(f"    W8: {bit_dist.get(8, 0):3d} layers ({bit_dist.get(8, 0)/len(config)*100:5.1f}%)")
     print(f"  Config file: {config_path}")
 
-def main():
+def main(SEED):
     print("="*50)
     print("RL-based Layer-wise Mixed-Precision Quantization")
     print("="*50)
+
+    np.random.seed(SEED)
     
     # 1. 데이터 로드
     print("\n[1/7] Loading data...")
-    calib_data, eval_data = load_data()
+    calib_data, eval_data = load_data(SEED)
     print(f"  Calibration samples: {len(calib_data)}")
     print(f"  Evaluation samples: {len(eval_data)}")
     
@@ -120,14 +124,18 @@ def main():
     print(f"  Alpha (PPL weight): {Config.ALPHA}")
     print(f"  Beta (Memory weight): {Config.BETA}")
     print("-" * 50)
+
+    model.to('cpu')
+    del model
+    gc.collect()
+    torch.cuda.empty_cache()
     
     for episode in range(Config.NUM_EPISODES):
         print(f"\n--- Episode {episode+1}/{Config.NUM_EPISODES} ---")
         
         metrics = trainer.train_step(
             states, 
-            lambda cfg: quant_manager.apply_config(cfg),
-            model
+            lambda cfg: quant_manager.apply_config(cfg)
         )
         
         # 최고 성능 업데이트
@@ -275,5 +283,9 @@ def main():
     print("\n✓ Training finished!")
 
 if __name__ == "__main__":
-    torch.manual_seed(Config.SEED)
-    main()
+    
+    for SEED in Config.SEED:
+        print("=-"*40)
+        print("SEED : ", SEED)
+        torch.manual_seed(SEED)
+        main(SEED)
