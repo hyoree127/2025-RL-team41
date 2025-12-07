@@ -1,3 +1,4 @@
+![AutoMP-RL](./img/rl.png)
 # AutoMP-RL: Automated Mixed-Precision Quantization using Reinforcement Learning
 
 ## Overview
