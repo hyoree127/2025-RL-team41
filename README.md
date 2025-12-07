@@ -251,7 +251,7 @@ All experiments were conducted using **PyTorch 2.9.1** on **NVIDIA A6000 GPUs**.
 ---
 
 ### 3.2 Used VRAM Memory on C4
-![AutoMP-RL](./img/memory.png)
+![AutoMP-RL](./img/Memory_Graph.png)
 
 | Method            | Precision | VRAM Memory (GB) | Memory Reduction (%) |
 |-------------------|-----------|------------------|------------------------|
@@ -263,7 +263,7 @@ All experiments were conducted using **PyTorch 2.9.1** on **NVIDIA A6000 GPUs**.
 ---
 
 ### 3.3 Perplexity (PPL) by Seed
-![AutoMP-RL](./img/ppl.png)
+![AutoMP-RL](./img/PPL_Graph.png)
 
 | Method           | 42   | 64   | 120  | 382  | 1651 | 2322 | 4768 | 942  | 3570 | 10964 |
 |------------------|------|------|------|------|------|------|------|------|------|--------|
@@ -276,7 +276,7 @@ All experiments were conducted using **PyTorch 2.9.1** on **NVIDIA A6000 GPUs**.
 
 ## 4 Analyze Each Episode
 
-![AutoMP-RL](./img/training_reward.png)
+![AutoMP-RL](./img/Reward_Graph.png)
 
 ### 4.1 Perplexity (PPL) Analysis
 
